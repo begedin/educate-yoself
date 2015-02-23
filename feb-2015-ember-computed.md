@@ -51,6 +51,21 @@ Take note of the `.property('todos.@each.isDone')`. It's important. The `remaini
 
 That's about as far as we can go, though. **We cannot go more than one level deep** when using `@each`. That means `todo.@each.isDone` works, but a hypothetical `todo.@each.subtask.isDone` or `todo.@each.subtask.@each.isDone` will absolutely not work.
 
+### What about '[]'
+
+Other than `@each`, there's also the `[]` 'selector'.
+
+To explain the difference, some history:
+
+Initially both were pretty much the same, with the difference that `[]` did not support observing properties of array elements, meaning `todos.@each.isDone` works, but `todos.[].isDone` does not. 
+
+For a short time between Ember 0.9.4 and 0.9.8, `[]` was gone completely. The reason it was [re-added in 0.9.8](https://github.com/emberjs/ember.js/commit/d5e659bc8a8abaa3524bf66b7eb9b8f1bcdd18a3) was because, I quote:
+
+>This were previously disabled due to over-zealous firing of firstObject
+and lastObject. However, [] was still useful for non-array enumerables.
+Additionally, firstObject and lastObject were made smarter so as to only
+fire notifications when necessary.
+
 ## Observers
 
 Observers are used when we want to fire an action when some property changes, without actually requiring a value to be returned. Simply put, we could consider them event handlers for `propertyChanged` events. **They can observe both basic as well as computed properties.**
