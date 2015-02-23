@@ -51,4 +51,98 @@ Take note of the `.property('todos.@each.isDone')`. It's important. The `remaini
 
 That's about as far as we can go, though. **We cannot go more than one level deep** when using `@each`. That means `todo.@each.isDone` works, but a hypothetical `todo.@each.subtask.isDone` or `todo.@each.subtask.@each.isDone` will absolutely not work.
 
+## Observers
 
+Observers are used when we want to fire an action when some property changes, without actually requiring a value to be returned. Simply put, we could consider them event handlers for `propertyChanged` events. **They can observe both basic as well as computed properties.**
+
+```JavaScript
+propertyA: null,
+
+onPropertyAChanged: function () {
+  // do something here
+}.observes('propertyA')
+```
+
+### Observers are synchronous
+
+This might cause problems in some cases. Again, stolen from the Ember site...
+
+**The observer could fire at the wrong time**:
+
+```JavaScript
+lastNameChanged: function() {
+  // The observer depends on lastName and so does fullName. Because observers
+  // are synchronous, when this function is called the value of fullName is
+  // not updated yet so this will log the old value of fullName
+  
+  // Personal note: I think the usage here is wrong anyway, but the auther 
+  // probably had trouble finding an example with a correct usage that would still
+  // create an issue, as do I :)
+  console.log(this.get('fullName'));
+}.observes('lastName')
+```
+**The observer could also fire multiple times when it really isn't necessary**:
+
+```JavaScript
+partOfNameChanged: function() {
+  // Because both firstName and lastName were set, this observer will fire twice.
+}.observes('firstName', 'lastName')
+```
+
+The solution to this is to make use of `Ember.run.once`:
+
+```JavaScript
+Person.reopen({
+  partOfNameChanged: function() {
+    // we schedule a proper callback instead of executing the required actions directly
+    Ember.run.once(this, 'processFullName');
+  }.observes('firstName', 'lastName'),
+
+  processFullName: function() {
+    // This will only fire once if you set two properties at the same time, and
+    // will also happen in the next run loop once all properties are synchronized
+    console.log(this.get('fullName'));
+  }
+});
+
+person.set('firstName', 'John');
+person.set('lastName', 'Smith');
+```
+
+Note to self: I should read up on the Ember run loop a bit more. I still don't understand it fully.
+
+### Observers do not fire during object initialization, only after. 
+
+This means that if we also want them to do something initally, when the properties they observe are being defined, we need to also bind the observer to the 'init' event:
+
+```JavaScript
+myObserver: function () {
+  //do something
+}.observes('propertyA', 'propertyB').on('init')
+```
+
+### If a computed property is not consumed (with 'get'), it's observers will not fire.
+
+This is a consequence of the fact that computed properties are evaluated when consumed, so without them being consumed, there is no evaluation, so there is no change detection.
+
+In the vast majority of cases, this is not an issue, but it can be an issue during object initialization, as with regular property observers, so we again make use of `on('init')`.
+
+
+### Alternative ways to define an observer
+
+* **If prototype extensions are switched off**, we can use `Ember.observer()`:
+```JavaScript
+onPropertyAChanged = Ember.observer('propertyA', function () {/* do something */})
+```
+
+* **From outside the class definition**, we can use `.addObserver()`
+
+```JavaScript
+propertyA.addObserver(function () {/* do something */})
+```
+
+### `observesBefore()` has been deprecated
+
+Prior to Ember 1.7, there was a special observer defined with `observesBefore('propertyName')`. This one would fire when a property is about to change, but hasn't changed yet.
+
+It has been deprecated in 1.7 and should not be used anymore. There is no specific alternative, but there are probably other solutions for most instances where it was used. Worst case scenario, once ould make a manual observesBefore by storing the new value of a property on each change into a separate variable and then looking up the value of that variable on future changes.
