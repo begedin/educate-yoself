@@ -146,3 +146,30 @@ propertyA.addObserver(function () {/* do something */})
 Prior to Ember 1.7, there was a special observer defined with `observesBefore('propertyName')`. This one would fire when a property is about to change, but hasn't changed yet.
 
 It has been deprecated in 1.7 and should not be used anymore. There is no specific alternative, but there are probably other solutions for most instances where it was used. Worst case scenario, once ould make a manual observesBefore by storing the new value of a property on each change into a separate variable and then looking up the value of that variable on future changes.
+
+## Bindings
+
+Bindings are sort of like computeds, except several of them work both ways by default (as getters and setters).
+
+They can work on properties of the same object, across different objects or basically in any other way.`Ember.computed.alias` is the simplest two-way binding.
+
+There are some optimizations in place so that bindings don't update immediately and instead wait until the application code is done running, so **it's not an issue to update bindings many times in a short period**.
+
+`Ember.computed.oneWay` is an explicit way to define a one-way binding. In this instance, oneWay means that in the case of 
+```JavaScript
+  propertyA: Ember.computed.oneWay('propertyB');
+```
+
+If we now set the value of 'propertyB', the value of 'propertyA' will also change. If, however, we do it the other way around and set the value of 'propertyA', only 'propertyA' will change, while 'propertyB' will not. As a consequence, this will also **permanently diverge the values of the two properties**.
+
+### Some less known, but possibly useful bindings
+
+`Ember.computed.deprecatingAlias` is the same as `Ember.computed.alias` except it also prints a deprecation warning in the console when used. This is new since Ember 1.7 and could be useful in some cases.
+
+`Ember.computed.readOnly` works sort of like `Ember.computed.oneWay`. The difference is that, instead of permanently diverging the value of the upstream property, it will instead throw an error when we attempt to set that value.
+
+`Ember.computed.reads` is an alias for `Ember.computed.oneWay` which is "semanthically more sound", according to the ember documentation.
+
+
+
+
