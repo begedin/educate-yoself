@@ -66,6 +66,8 @@ and lastObject. However, [] was still useful for non-array enumerables.
 Additionally, firstObject and lastObject were made smarter so as to only
 fire notifications when necessary.
 
+So, basically, `[]` can be used with non-array enumerables, such as Ember.set for instance. For array enumerables, `@each` should probably be used.
+
 ## Observers
 
 Observers are used when we want to fire an action when some property changes, without actually requiring a value to be returned. Simply put, we could consider them event handlers for `propertyChanged` events. **They can observe both basic as well as computed properties.**
