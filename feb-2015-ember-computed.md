@@ -4,7 +4,7 @@
 
 We probably all know what computed properties are, so I wont talk about that.
 
-Though unlikely, it is possible that some might not know computed properties can be chained, meaning `computedPropertyA` can depend on `propertyA` and `propertyB` while `computedPropertyB` could then depend on `computedPropertyA` (and something else).
+Though unlikely, it is possible that some might not know **computed properties can be chained**, meaning `computedPropertyA` can depend on `propertyA` and `propertyB` while `computedPropertyB` could then depend on `computedPropertyA` (and something else).
 
 What I suspected, but wasn't aware how it's done up to this point is that **computed properties can be written to**. Here's how:
 
