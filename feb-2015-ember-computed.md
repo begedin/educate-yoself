@@ -187,6 +187,42 @@ If we now set the value of 'propertyB', the value of 'propertyA' will also chang
 
 `Ember.computed.reads` is an alias for `Ember.computed.oneWay` which is "semanthically more sound", according to the ember documentation.
 
+## How it all actually works
+
+Ember has an `observable` which uses the following property events:
+* `beginPropertyChanges`
+* `propertyWillChange`
+* `propertyDidChange`
+* `endPropertyChanges`
+
+An `Ember.object` **defines its properties as observable**, meaning each property will get a getter and setter. Using the setter (`this.set('property', value)`) triggers the property events listed above as/where applicable.
+
+An observable also has the following methods:
+* `addObserver`
+* `addBeforeObserver`
+* `removeObserver`
+* `observersFor`
+
+**When we define an observer** on a property, `addObserver` (or `addBeforeObserver` in case of the deprecated `observesBefore`) will get called by that property.
+
+From that point, the callback added through the `.observes` extension will get executed every time `propertyWillChange` (in case of `observesBefore`) or `propertyDidChange` (in case of `observes`) is triggered by that observable property.
+
+There are some optimizations that take place to reduce amount of calls and improve performance, but that's about the gist of it.
+
+**When we define an `Ember.computed.x`**, in short, `observers` and `beforeObservers` will be added to the dependend keys listed in the definition of the computed.
+
+It's not as simple as that because there's an optimization mechanic that involves value caching, but here are a few rules on how it all works.
+
+* If the dependend keys are observable, the value of the computed will be cached. Since the computed is also an observable, it will not get re-evaluated on it's own. Instead, when the dependend properties trigger a `propertyDidChange`, so will the computed, so that we get an updated value instead of a cached one the next time we 'get' the computed.
+* Outside of that, if the dependend keys are not observables, we can disable caching by marking the computed as volatile. In that case, every time we 'get' the computed value, it will be re-evaluated.
+
+
+
+
+
+
+
+
 
 
 
