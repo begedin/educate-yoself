@@ -211,10 +211,11 @@ There are some optimizations that take place to reduce amount of calls and impro
 
 **When we define an `Ember.computed.x`**, in short, `observers` and `beforeObservers` will be added to the dependend keys listed in the definition of the computed.
 
-It's not as simple as that because there's an optimization mechanic that involves value caching, but here are a few rules on how it all works.
+It's not as simple as that because there's an optimization mechanic that involves value caching. Reading the code can make it seem more complex than it actually is, though.
 
-* If the dependend keys are observable, the value of the computed will be cached. Since the computed is also an observable, it will not get re-evaluated on it's own. Instead, when the dependend properties trigger a `propertyDidChange`, so will the computed, so that we get an updated value instead of a cached one the next time we 'get' the computed.
-* Outside of that, if the dependend keys are not observables, we can disable caching by marking the computed as volatile. In that case, every time we 'get' the computed value, it will be re-evaluated.
+Basically, if the dependend keys are observable, the value of the computed will be cached. Since the computed is also an observable, it will not get re-evaluated on it's own. Instead, when the dependendent properties trigger a `propertyDidChange`, the observers attached to those properties by the computed will trigger appropriate property events on the computed as well. The next time we get the value of the computed, it will know if the underlying properties have changed, so it will re-evaluate itself only if necessary. Otherwise, it will return the cached value.
+
+Outside of that, if the dependend keys are not observables, we can disable caching by marking the computed as 'volatile'. In that case, every time we 'get' the computed value, it will be re-evaluated. According to Ember documentation, **there is no reason to mark a computed as volatile if all of the dependent properties are observables themselves.**
 
 
 
